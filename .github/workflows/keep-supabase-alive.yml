@@ -1,39 +1,28 @@
-name: Kiểm tra Supabase
+# Giữ project Supabase không bị tạm ngưng (free tier tự pause sau 7 ngày không hoạt động).
+# Cách dùng:
+#   1. Tạo một repo GitHub bất kỳ (public hay private đều được, kể cả repo trống mới tạo).
+#   2. Trong repo đó, tạo file đúng đường dẫn: .github/workflows/keep-supabase-alive.yml
+#   3. Dán toàn bộ nội dung file này vào, commit + push lên GitHub.
+#   4. Xong — không cần làm gì thêm. GitHub sẽ tự chạy theo lịch, kể cả khi không ai mở máy.
+#
+# Có thể bấm "Run workflow" trong tab Actions của repo để chạy thử ngay, không cần chờ tới lịch.
+
+name: Giữ Supabase không bị pause
 
 on:
-  workflow_dispatch: {}
+  schedule:
+    # Chạy vào 02:00 UTC mỗi thứ Hai (~09:00 sáng giờ Việt Nam) — còn dư thừa so với
+    # ngưỡng 7 ngày không hoạt động, nên sẽ không bao giờ để project bị pause.
+    - cron: "0 2 * * 1"
+  workflow_dispatch: {}  # cho phép bấm chạy thử bằng tay trong tab Actions
 
 jobs:
   ping:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Kiểm tra Secret
+      - name: Gọi một truy vấn nhẹ tới Supabase để tạo hoạt động
         run: |
-          if [ -z "${{ secrets.SUPABASE_URL }}" ]; then
-            echo "SUPABASE_URL đang RỖNG"
-            exit 1
-          fi
-
-          if [ -z "${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" ]; then
-            echo "SUPABASE_PUBLISHABLE_KEY đang RỖNG"
-            exit 1
-          fi
-
-          echo "SUPABASE_URL: OK"
-          echo "SUPABASE_PUBLISHABLE_KEY: OK"
-
-      - name: Gọi Supabase
-        run: |
-          HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/" \
-            -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}")
-
-          echo "HTTP $HTTP_CODE"
-
-          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
-            echo "Supabase ping thành công."
-          else
-            echo "Supabase trả về HTTP $HTTP_CODE."
-            exit 1
-          fi
+          curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
+            "https://qcoeksqqyqshyvlzkgvz.supabase.co/rest/v1/kt_trac_nghiem?select=id&limit=1" \
+            -H "apikey: sb_publishable_3uc1687zAEGmEusCQSpQAQ_HXizJmhJ" \
+            -H "Authorization: Bearer sb_publishable_3uc1687zAEGmEusCQSpQAQ_HXizJmhJ"
