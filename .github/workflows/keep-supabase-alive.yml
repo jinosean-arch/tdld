@@ -1,11 +1,6 @@
-name: Giữ Supabase không bị pause
+name: Kiểm tra Supabase
 
 on:
-  schedule:
-    # Chạy mỗi ngày lúc 02:00 UTC = khoảng 09:00 sáng giờ Việt Nam
-    - cron: "0 2 * * *"
-
-  # Cho phép bấm Run workflow để kiểm tra thủ công
   workflow_dispatch: {}
 
 jobs:
@@ -13,7 +8,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Gọi một truy vấn nhẹ tới Supabase
+      - name: Kiểm tra Secret
+        run: |
+          if [ -z "${{ secrets.SUPABASE_URL }}" ]; then
+            echo "SUPABASE_URL đang RỖNG"
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" ]; then
+            echo "SUPABASE_PUBLISHABLE_KEY đang RỖNG"
+            exit 1
+          fi
+
+          echo "SUPABASE_URL: OK"
+          echo "SUPABASE_PUBLISHABLE_KEY: OK"
+
+      - name: Gọi Supabase
         run: |
           HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" \
             "${{ secrets.SUPABASE_URL }}/rest/v1/kt_trac_nghiem?select=id&limit=1" \
