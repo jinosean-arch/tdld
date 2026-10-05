@@ -26,7 +26,7 @@ jobs:
       - name: Gọi Supabase
         run: |
           HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/kt_trac_nghiem?select=id&limit=1" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/" \
             -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}")
 
           echo "HTTP $HTTP_CODE"
